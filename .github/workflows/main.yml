@@ -1,6 +1,6 @@
 name: Deploy React Frontend
 
-#on:
+on:
   push:
     branches:
       - main
@@ -17,7 +17,7 @@ jobs:
       - name: Configure AWS credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: arn:aws:iam::<ACCOUNT_ID>:role/GitHubActions-EC2-Deploy
+          role-to-assume: arn:aws:iam::093207963200:role/git-hub-oidc
           aws-region: us-east-1
 
       - name: Run deployment commands on EC2 via SSM
@@ -25,13 +25,15 @@ jobs:
           aws ssm send-command \
             --targets "Key=InstanceIds,Values=<EC2_INSTANCE_ID>" \
             --document-name "AWS-RunShellScript" \
-            --comment "Deploy React Frontend" \
+            --comment "Deploy FastAPI Backend" \
             --parameters 'commands=[
-              "cd ~/react-frontend",
+              "cd ~/fastapi-backend",
+              "PIDS=$(pgrep -f uvicorn || true)",
+              "if [ -n \"$PIDS\" ]; then sudo kill -9 $PIDS; fi",
+              "sleep 5",
               "git fetch -p",
               "git pull origin main",
-              "npm install",
-              "npm run build",
-              "# Optionally serve via 'serve -s build' or copy to nginx folder",
-              "nohup npx serve -s build -l 3000 > frontend.log 2>&1 &"
+              "source venv/bin/activate",
+              "pip install -r requirements.txt",
+              "nohup python3 -m uvicorn main:app --host 0.0.0.0 --port 8000 --forwarded-allow-ips=\"*\" > app.log 2>&1 &"
             ]'
