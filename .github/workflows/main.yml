@@ -1,0 +1,37 @@
+name: Deploy React Frontend
+
+#on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy-frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::<ACCOUNT_ID>:role/GitHubActions-EC2-Deploy
+          aws-region: us-east-1
+
+      - name: Run deployment commands on EC2 via SSM
+        run: |
+          aws ssm send-command \
+            --targets "Key=InstanceIds,Values=<EC2_INSTANCE_ID>" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Deploy React Frontend" \
+            --parameters 'commands=[
+              "cd ~/react-frontend",
+              "git fetch -p",
+              "git pull origin main",
+              "npm install",
+              "npm run build",
+              "# Optionally serve via 'serve -s build' or copy to nginx folder",
+              "nohup npx serve -s build -l 3000 > frontend.log 2>&1 &"
+            ]'
