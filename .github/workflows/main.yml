@@ -27,7 +27,7 @@ jobs:
             --document-name "AWS-RunShellScript" \
             --comment "Deploy FastAPI Backend" \
             --parameters 'commands=[
-              "cd ~/fastapi-backend",
+              "cd ~/fastapi",
               "PIDS=$(pgrep -f uvicorn || true)",
               "if [ -n \"$PIDS\" ]; then sudo kill -9 $PIDS; fi",
               "sleep 5",
