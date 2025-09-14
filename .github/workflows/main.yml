@@ -23,7 +23,7 @@ jobs:
       - name: Run deployment commands on EC2 via SSM
         run: |
           aws ssm send-command \
-            --targets "Key=InstanceIds,Values=<EC2_INSTANCE_ID>" \
+            --targets "Key=i-01579d8c01a88318f,Values=<EC2_INSTANCE_ID>" \
             --document-name "AWS-RunShellScript" \
             --comment "Deploy FastAPI Backend" \
             --parameters 'commands=[
